@@ -302,7 +302,10 @@ void handle_button(void)
 
 				if (!button_handled) {
 					if (press_duration < SHORT_PRESS_MS) {
-						if (is_waiting_for_double_click) {
+						/* Immediate single click in main menu */
+						if (state == STATE_MENU) {
+							execute_action(ACTION_SINGLE);
+						} else if (is_waiting_for_double_click) {
 							execute_action(ACTION_DOUBLE);
 							is_waiting_for_double_click = false;
 						} else {
@@ -343,9 +346,9 @@ void execute_action(enum button_action action)
 		break;
 
 	case ACTION_DOUBLE:
-		Serial.println("[Button] Double-click detected -> Exiting to Menu");
-		tone(BUZZER_PIN, TONE_FREQ_DOUBLE, 120);
 		if (state != STATE_MENU) {
+			Serial.println("[Button] Double-click detected -> Exiting to Menu");
+			tone(BUZZER_PIN, TONE_FREQ_DOUBLE, 120);
 			exit_feature();
 			state = STATE_MENU;
 			draw_menu();
