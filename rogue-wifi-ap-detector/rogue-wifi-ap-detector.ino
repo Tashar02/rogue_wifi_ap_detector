@@ -566,7 +566,7 @@ void feature_ping_monitor(void)
 	digitalWrite(LED_BLUE, blue_led_state ? HIGH : LOW);
 
 	display_begin_frame();
-	display.println("Feature 1: Ping check");
+	display.println("F1: Ping check");
 	display.println("---------------------");
 
 	display.print("AP: ");
@@ -601,7 +601,7 @@ void feature_data_monitor(void)
 	last_feature_update = now;
 
 	display_begin_frame();
-	display.println("Feature 2: Data check");
+	display.println("F2: Data check");
 	display.println("---------------------");
 
 	display.print("AP: ");
@@ -641,7 +641,7 @@ void feature_client_logger(void)
 	last_feature_update = now;
 
 	display_begin_frame();
-	display.println("Feature 3: Client log");
+	display.println("F4: Client log");
 	display.println("---------------------");
 
 	display.print("AP: ");
@@ -675,7 +675,7 @@ void feature_flood_monitor(void)
 	last_feature_update = now;
 
 	display_begin_frame();
-	display.println("Feature 4: Flood mon");
+	display.println("F4: Flood monitor");
 	display.println("---------------------");
 
 	display.print("AP: ");
@@ -741,7 +741,7 @@ void feature_portscan_monitor(void)
 	digitalWrite(LED_BLUE, HIGH);
 
 	display_begin_frame();
-	display.println("Feature 5: Port Scan");
+	display.println("F5: Port Scan");
 	display.println("---------------------");
 
 	display.print("AP: ");
