@@ -707,7 +707,9 @@ void feature_flood_monitor(void)
 void feature_portscan_monitor(void)
 {
 	bool scan_hit = false;
-	static unsigned long last_beep_time = 0;
+	static unsigned long alarm_end_time = 0;
+	static unsigned long last_tone_toggle = 0;
+	static bool tone_toggle = false;
 	unsigned long now = millis();
 	WiFiClient c;
 	int i;
@@ -726,10 +728,20 @@ void feature_portscan_monitor(void)
 	if (scan_hit) {
 		port_scan_count++;
 		last_scan_time = now;
+		alarm_end_time = now + 3000; /* Set/extend dramatic siren duration for 3 seconds */
+	}
 
-		if (now - last_beep_time > 300) {
-			tone(BUZZER_PIN, TONE_FREQ_ALARM, 150);
-			last_beep_time = now;
+	/* Dramatic non-blocking siren & flashing RGB active during alert window */
+	if (now < alarm_end_time) {
+		if (now - last_tone_toggle >= 100) {
+			last_tone_toggle = now;
+			tone_toggle = !tone_toggle;
+			tone(BUZZER_PIN, tone_toggle ? 2800 : 1800, 100);
+
+			if (tone_toggle)
+				set_rgb(40, 0, 10); /* Red-Purple Flash ON */
+			else
+				set_rgb(0, 0, 0);   /* Flash OFF */
 		}
 	}
 
@@ -752,11 +764,14 @@ void feature_portscan_monitor(void)
 	display.setCursor(0, 36);
 	display.print("Honeypot Ports: 4");
 
-	if (port_scan_count > 0) {
+	if (port_scan_count > 0 || now < alarm_end_time) {
 		display.setCursor(0, 46);
 		display.println(">> SCAN DETECTED <<");
 		digitalWrite(LED_ORANGE, HIGH);
-		set_rgb(40, 0, 10); /* Red-Purple: Port Scan Triggered */
+
+		/* Maintain solid warning state if alarm finished but timeout window active */
+		if (now >= alarm_end_time)
+			set_rgb(40, 0, 10); /* Red-Purple: Port Scan Triggered */
 	} else {
 		digitalWrite(LED_ORANGE, LOW);
 		set_rgb(20, 0, 20); /* Purple: Honeypot Ready */
@@ -764,9 +779,10 @@ void feature_portscan_monitor(void)
 
 	display_end_frame(true);
 
-	if (port_scan_count > 0 && (now - last_scan_time > SCAN_TIMEOUT_MS)) {
+	if (port_scan_count > 0 && (now - last_scan_time > SCAN_TIMEOUT_MS) && now >= alarm_end_time) {
 		port_scan_count = 0;
 		digitalWrite(LED_ORANGE, LOW);
+		set_rgb(20, 0, 20);
 	}
 }
 
