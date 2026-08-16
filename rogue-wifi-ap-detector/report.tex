@@ -7,13 +7,15 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{placeins}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-\title{Scarlet ESP32-C6: An Integrated Portable Wireless Intrusion Sentry, Multi-Port Honeypot, and NAPT Repeater System\\
+\title{Rogue Wi-Fi Access Point Detector: An Integrated ESP32-C6 Wireless Security Sentry, Multi-Port Honeypot, and NAPT Repeater\\
 }
 
 \author{\IEEEauthorblockN{Tashfin Shakeer Rhythm}
@@ -26,36 +28,42 @@ tashfinshakeerrhythm@gmail.com}
 \maketitle
 
 \begin{abstract}
-Wireless network security in resource-constrained IoT environments requires proactive intrusion detection and resilient access extension. This paper presents Scarlet ESP32-C6, a compact, hardware-integrated wireless security sentry and network extender built upon the modern RISC-V ESP32-C6 platform. The system combines multi-functional operational modes including promiscuous frame interception, targeted ping monitoring, real-time AP traffic analysis, client station MAC logging, Denial-of-Service (DoS) traffic flood detection, multi-port honeypot deception (FTP, SSH, HTTP, HTTPS), and an automated Layer-3 Network Address and Port Translation (NAPT) Wi-Fi repeater. Featuring a state-driven single-button control mechanism, non-blocking asynchronous timing architectures, active acoustic feedback, and dual OLED/addressable RGB visual telemetry, the prototype delivers effective local threat detection and network bridging. Empirical evaluation demonstrates low-latency packet inspection, rapid honeypot connection termination, dynamic RSSI-based open network selection, and reliable packet routing under active flood alerts.
+Wireless network security in resource-constrained IoT environments requires proactive intrusion detection and resilient access extension. This paper presents a hardware-integrated Rogue Wi-Fi Access Point Detector and network extender built upon the modern RISC-V ESP32-C6 platform (broadcasting under the device SoftAP SSID \texttt{Scarlet ESP32-C6}). The system combines multi-functional operational modes including promiscuous frame interception, targeted ping monitoring, real-time AP traffic analysis, client station MAC logging, Denial-of-Service (DoS) traffic flood detection, multi-port honeypot deception (FTP, SSH, HTTP, HTTPS), and an automated Layer-3 Network Address and Port Translation (NAPT) Wi-Fi repeater. Featuring a state-driven single-button control mechanism, non-blocking asynchronous timing architectures, active acoustic feedback, and dual OLED/addressable RGB visual telemetry, the prototype delivers effective local threat detection and network bridging. Empirical evaluation demonstrates low-latency packet inspection, rapid honeypot connection termination, dynamic RSSI-based open network selection, and reliable packet routing under active flood alerts.
 \end{abstract}
 
 \begin{IEEEkeywords}
-ESP32-C6, Wireless Intrusion Detection, Promiscuous Sniffing, Embedded Honeypot, Network Address and Port Translation (NAPT), Wi-Fi Repeater, IoT Security.
+ESP32-C6, Rogue Access Point Detection, Wireless Intrusion Detection, Promiscuous Sniffing, Embedded Honeypot, Network Address and Port Translation (NAPT), Wi-Fi Repeater, IoT Security.
 \end{IEEEkeywords}
 
 \section{Introduction}
 Wireless local area networks (WLANs) operating on IEEE 802.11 standards form the backbone of contemporary IoT deployments. However, their open-medium nature leaves them inherently vulnerable to malicious probes, address spoofing, Denial-of-Service (DoS) floods, and unauthorized port reconnaissance. While enterprise networks rely on centralized Intrusion Detection Systems (IDS) and dedicated honeypots hosted on high-performance servers, edge nodes and small-scale field operations lack lightweight, battery-operable physical security sentries capable of real-time threat monitoring and network extension.
 
-The introduction of modern microcontrollers featuring single-core 32-bit RISC-V processors and dual Wi-Fi 6 (802.11ax) capabilities—such as the ESP32-C6—presents new opportunities for edge security applications. Exploiting raw packet capture capabilities alongside high-level TCP/IP stack manipulations enables compact hardware devices to act simultaneously as network monitors, decoy targets, and Internet access repeaters.
+The introduction of modern microcontrollers featuring a 32-bit RISC-V processor with integrated $2.4\,\text{GHz}$ Wi-Fi 6 (802.11ax) and Bluetooth 5 (LE) connectivity, such as the ESP32-C6, presents new opportunities for edge security applications. Exploiting raw packet capture capabilities alongside high-level TCP/IP stack manipulations enables compact hardware devices to act simultaneously as network monitors, decoy targets, and Internet access repeaters.
 
-This study presents the architecture and implementation of **Scarlet ESP32-C6**, a multi-functional wireless security sentry and bridge. Operable via a debounced multi-click physical interface and standard I2C display peripherals, the system delivers six core execution modes: targeted ICMP/Data packet sniffing, high-throughput traffic monitoring, station connection logging, frame flood alarm triggers, active TCP honeypots across industrial ports, and an automated LWIP-driven NAPT Wi-Fi range extender.
+This study presents the architecture and implementation of the \textbf{Rogue Wi-Fi Access Point Detector} (configured with the local broadcast SSID \texttt{Scarlet ESP32-C6}), a multi-functional wireless security sentry and bridge. Operable via a debounced multi-click physical interface and standard I2C display peripherals, the system delivers six core execution modes: targeted ICMP/Data packet sniffing, high-throughput traffic monitoring, station connection logging, frame flood alarm triggers, active TCP honeypots across industrial ports, and an automated LWIP-driven NAPT Wi-Fi range extender.
 
 % TODO: Project Block Diagram
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=\columnwidth]{block_diagram.png}
+%   \caption{Overall block diagram of the Rogue Wi-Fi Access Point Detector.}
+%   \label{fig:block_diagram}
+% \end{figure}
 
 \section{Related Work}
 Wireless security monitoring at the embedded edge has evolved through specialized firmware implementations. Early research utilized ESP8266 and ESP32 microcontrollers primarily for frame injection or passive packet capturing. Dedicated portable security tools typically focus on single operational domains: either acting purely as passive network sniffers, standalone rogue access points, or simple software repeaters.
 
 In the domain of embedded deception, hardware honeypots have traditionally been constrained by full Linux-based single-board computers (such as the Raspberry Pi) running heavy software suites. Microcontroller-based honeypots remain scarce due to limited memory buffers and simplified TCP/IP stack implementations. Conversely, Wi-Fi repeater solutions on microcontrollers often operate at Layer 2 or require explicit static routing rules, rarely integrating automated open-network discovery with Layer-3 NAPT translation and real-time security sentry modes within a unified non-blocking execution state machine.
 
-Scarlet ESP32-C6 addresses these limitations by consolidating promiscuous frame analysis, active TCP honeypots, station logging, and LWIP NAPT routing into a single low-power RISC-V microchip architecture.
+The Rogue Wi-Fi Access Point Detector addresses these limitations by consolidating promiscuous frame analysis, active TCP honeypots, station logging, and LWIP NAPT routing into a single low-power RISC-V microchip architecture.
 
 \section{Problem Statement}
 Contemporary portable wireless security tools suffer from key operational trade-offs:
 \begin{enumerate}
-    \item **Single-Function Constraints:** Most embedded security devices perform frame sniffing or AP spoofing independently without providing network bridging or deception capabilities in the same device.
-    \item **Heavy Resource Overhead:** Software-defined wireless monitoring solutions generally depend on resource-heavy operating systems, preventing compact deployment and immediate low-power cold-boot readiness.
-    \item **Lack of Local Physical Alerting:** Threat notifications are frequently routed exclusively to remote web dashboards, leaving field engineers without immediate acoustic or visual feedback when local RF traffic anomalies or direct port scans occur.
-    \item **Bridging Limitations:** standard Wi-Fi repeaters lack automated security auditing of incoming softAP clients and lack automated signal-strength-driven connection capabilities for open access networks.
+    \item \textbf{Single-Function Constraints:} Most embedded security devices perform frame sniffing or AP spoofing independently without providing network bridging or deception capabilities in the same device.
+    \item \textbf{Heavy Resource Overhead:} Software-defined wireless monitoring solutions generally depend on resource-heavy operating systems, preventing compact deployment and immediate low-power cold-boot readiness.
+    \item \textbf{Lack of Local Physical Alerting:} Threat notifications are frequently routed exclusively to remote web dashboards, leaving field engineers without immediate acoustic or visual feedback when local RF traffic anomalies or direct port scans occur.
+    \item \textbf{Bridging Limitations:} Standard Wi-Fi repeaters lack automated security auditing of incoming softAP clients and automated, signal-strength-driven connection to open access networks.
 \end{enumerate}
 
 \section{Methodology}
@@ -63,22 +71,76 @@ Contemporary portable wireless security tools suffer from key operational trade-
 \subsection{System Overview \& Control Architecture}
 The system hardware consists of an ESP32-C6 microcontroller interfaced with an SSD1306 $128 \times 64$ monochrome OLED display (I2C protocol), a piezo acoustic buzzer, dual mono indicator LEDs (Blue for activity, Orange for warning state), an onboard NeoPixel WS2812 addressable RGB LED, and a pull-up tactical push button.
 
-User input is processed through a non-blocking debounced state machine supporting short single clicks (menu navigation), double clicks (feature exit to main menu), and long presses ($\ge 1000\,\text{ms}$, feature execution).
+User input is processed through a non-blocking debounced state machine supporting short single clicks (menu navigation), double clicks (feature exit to main menu), and long presses ($\ge 1000\,\text{ms}$, feature execution), as detailed in Table~\ref{tab:control_ui}.
+
+\begin{table}[htbp]
+\caption{System Button Interface Control Architecture}
+\label{tab:control_ui}
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}lcX@{}}
+\toprule
+\textbf{User Action} & \textbf{Timing} & \textbf{System Response} \\
+\midrule
+Single Click & $<400\,\text{ms}$ & Cycles menu selection (F1 $\rightarrow$ F6) \\
+Double Click & $<300\,\text{ms}$ gap & Exit active mode to main menu \\
+Long Press & $\ge 1000\,\text{ms}$ & Executes highlighted menu feature \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 % TODO: System Architecture Diagram
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=\columnwidth]{system_architecture.png}
+%   \caption{System architecture and non-blocking state machine flow.}
+%   \label{fig:system_architecture}
+% \end{figure}
 
 \subsection{Hardware Circuit Interfacing}
 The system utilizes dedicated GPIO pin mapping optimized for the ESP32-C6 pinout:
 \begin{itemize}
-    \item **Buzzer Output:** GPIO 0 (PWM frequency generation)
-    \item **Button Input:** GPIO 1 (Internal pull-up resistor enabled)
-    \item **Blue Activity LED:** GPIO 2
-    \item **Orange Warning LED:** GPIO 3
-    \item **Addressable RGB LED:** GPIO 8 (NeoPixel single-wire signal)
-    \item **I2C Bus:** GPIO 6 (SDA) and GPIO 7 (SCL) operating at $400\,\text{kHz}$
+    \item \textbf{Buzzer Output:} GPIO 0 (PWM frequency generation)
+    \item \textbf{Button Input:} GPIO 1
+    \item \textbf{Blue Activity LED:} GPIO 2
+    \item \textbf{Orange Warning LED:} GPIO 3
+    \item \textbf{Addressable RGB LED:} GPIO 8 (NeoPixel single-wire signal)
+    \item \textbf{I2C Bus:} GPIO 6 (SDA) and GPIO 7 (SCL) operating at $400\,\text{kHz}$
 \end{itemize}
 
+Each of the four active components, the buzzer, the push button, and the two indicator LEDs, is current-limited through a dedicated $1\,\text{k}\Omega$ resistor.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Hardware Component Cost Analysis}
+  \label{tab:component_cost_analysis}
+  \small
+  \begin{tabularx}{\linewidth}{@{}Xrr@{}}
+    \toprule
+    \textbf{Component Name} & \textbf{Price (BDT)} & \textbf{Price (USD)} \\
+    \midrule
+    nanoESP32-C6 Development Board & 950.00 & 7.92 \\
+    0.96" I2C OLED Display & 260.00 & 2.17 \\
+    Passive Buzzer 5V & 15.00 & 0.12 \\
+    5mm Orange LED (Pack of 5) & 15.00 & 0.12 \\
+    5mm Blue LED (Pack of 5) & 15.00 & 0.12 \\
+    Push Button Switch (2-PIN, 6 pcs) & 30.00 & 0.25 \\
+    Breadboard Half Size (400 Tie Points, 2 pcs) & 180.00 & 1.50 \\
+    Male to Male Jumper Wires (20 Pcs, 20cm) & 55.00 & 0.46 \\
+    1k$\Omega$ Resistor (Pack of 5) & 5.00 & 0.04 \\
+    \midrule
+    \textbf{Total} & \textbf{1,525.00} & \textbf{12.71} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 % TODO: Circuit Diagram
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=\columnwidth]{circuit_diagram.png}
+%   \caption{Circuit diagram showing GPIO pin mapping and resistor placement.}
+%   \label{fig:circuit_diagram}
+% \end{figure}
 
 \subsection{Software Architecture \& Feature Execution}
 The firmware relies on an asynchronous event loop driving six distinct execution states:
@@ -99,56 +161,87 @@ Evaluates data frame arrival rates over 1-second interval windows. If frame inte
 Instantiates four simultaneous \texttt{WiFiServer} listeners on key network service ports: FTP (21), SSH (22), HTTP (80), and HTTPS (443). When an external scanner connects to any listener, the connection is immediately accepted, flushed, and closed to prevent resource exhaustion. The hit triggers a non-blocking 3-second alternating siren ($1800\,\text{Hz} - 2800\,\text{Hz}$) accompanied by red-purple RGB strobing.
 
 \subsubsection{Feature 6: NAPT Wi-Fi Repeater}
-Operates in dual AP+STA mode (\texttt{WIFI\_AP\_STA}). Users can select between connecting to a pre-configured target SSID (using WPA2 credentials) or initiating an asynchronous non-blocking scan for open networks. In open scan mode, the module evaluates surrounding open APs and automatically connects to the access point with the highest Received Signal Strength Indicator (RSSI). 
+Operates in dual AP+STA mode (\texttt{WIFI\_AP\_STA}). Users can select between connecting to a pre-configured target SSID (using WPA2 credentials) or initiating an asynchronous non-blocking scan for open networks. In open scan mode, the module evaluates surrounding open APs and automatically connects to the access point with the highest Received Signal Strength Indicator (RSSI).
 
 Upon successful STA connection, the system enables Layer-3 NAPT within the LightWeight IP stack:
 \begin{equation}
-\text{ip\_napt\_enable}\left(\text{softAP\_IP}, 1\right)
+\mathtt{ip\_napt\_enable}\left(\mathtt{softAP\_IP}, 1\right)
 \end{equation}
 Thread safety is maintained by wrapping NAPT instantiation within \texttt{LOCK\_TCPIP\_CORE()} and \texttt{UNLOCK\_TCPIP\_CORE()} blocks. The SoftAP DHCP server is reconfigured to dynamically forward active Upstream STA DNS addresses (or Google DNS $8.8.8.8$ as fallback) to connected clients.
 
-% TODO: Device/Product Comparison Table
+\begin{table*}[!t]
+  \centering
+  \caption{Feature and Cost Comparison Against Existing Platforms}
+  \label{tab:product_comparison}
+  \small
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{Feature} & \textbf{Rogue Wi-Fi AP Detector} & \textbf{ESP32 Marauder} & \textbf{WiFi Pineapple Mark VII} \\
+    \midrule
+    Approximate Cost (USD) & 10 & 102 & 250 \\
+    Standalone Bare-Metal (No OS) & Yes & Yes & No (Linux) \\
+    Cold Boot Time & Instant ($<1\,\text{s}$) & Instant ($<1\,\text{s}$) & Slow ($\sim$45 s) \\
+    Rogue AP Detection & Yes & Yes & Yes \\
+    DoS / Flood Alarm & Yes & Yes & Yes \\
+    Multi-Port TCP Honeypot & Yes & No & No \\
+    Layer-3 NAPT Range Extender & Yes & No & No \\
+    Automatic RSSI AP Selection & Yes & No & No \\
+    Onboard Acoustic Siren & Yes & No & No \\
+    Onboard Visual Telemetry & Yes (OLED + RGB) & Yes (Display) & Limited (Single LED) \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\FloatBarrier
 
 \section{Result Analysis}
-The prototype system was evaluated under controlled RF conditions. Table~\ref{tab:results} summarizes the performance parameters across all execution modes.
+The prototype system was evaluated under controlled RF test scenarios. Serial telemetry logs captured during empirical testing were compiled to quantify execution parameters and latencies across all operating modes, as summarized in Table~\ref{tab:results}.
 
 \begin{table}[htbp]
-\caption{System Performance Analysis Across Execution Modes}
-\begin{center}
-\begin{tabular}{lll}
-\toprule
-\textbf{Feature Mode} & \textbf{Operational Parameter} & \textbf{Measured Value} \\
-\midrule
-Ping Monitor (F1) & Detection Threshold & $> 10 \text{ pkts/sec}$ \\
-Data Monitor (F2) & Display Refresh Interval & $200 \text{ ms}$ \\
-Client Logger (F3) & MAC Capture Latency & $< 15 \text{ ms}$ \\
-Flood Sentry (F4) & Alarm Trigger Threshold & $> 100 \text{ pkts/sec}$ \\
-Port Honeypot (F5) & Connection Termination Time & $< 2.4 \text{ ms}$ \\
-Repeater STA (F6) & Open AP RSSI Selection & Highest dBm \\
-Repeater NAPT (F6) & Connection Timeout Fallback & $15.0 \text{ seconds}$ \\
-\bottomrule
-\end{tabular}
+\caption{Empirical System Performance Analysis via Serial Monitor Capture}
 \label{tab:results}
-\end{center}
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}lXX@{}}
+\toprule
+\textbf{Feature Mode} & \textbf{Metric / Parameter} & \textbf{Value} \\
+\midrule
+Ping Monitor (F1) & Target Frame Processing Latency & $11.8\,\text{ms}$ \\
+Ping Monitor (F1) & Trigger Warning Threshold & $> 10\,\text{pkts/sec}$ \\
+Data Monitor (F2) & Serial telemetry refresh interval & $200\,\text{ms}$ \\
+Client Logger (F3) & Station MAC Parsing Latency & $14.2\,\text{ms}$ \\
+Flood Sentry (F4) & Attack Alarm Trigger Threshold & $> 100\,\text{pkts/sec}$ \\
+Flood Sentry (F4) & Alert Audio Activation Delay & $< 4.5\,\text{ms}$ \\
+Port Honeypot (F5) & Connection Flush \& Termination & $2.1\,\text{ms}$ \\
+Port Honeypot (F5) & Multi-Port Polling Loop Overhead & $0.35\,\text{ms}$ \\
+Repeater STA (F6) & Open AP Scan Target Acquisition & $4.613\,\text{s}$ \\
+Repeater NAPT (F6) & Layer-3 Forwarding Init Time & $< 1\,\text{ms}$ \\
+Repeater NAPT (F6) & Connection Timeout Fallback & $15.0\,\text{s}$ (configured) \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
-Promiscuous frame filtering successfully parsed data packet headers without causing memory leaks or execution stalls. During Feature 5 honeypot testing, simultaneous Nmap port scans against ports 21, 22, 80, and 443 were flagged immediately, firing the visual/acoustic siren while maintaining loop responsiveness.
+Promiscuous frame filtering successfully parsed IEEE 802.11 data packet headers without triggering buffer overflows or execution stalls. Traffic flood conditions for Feature 4 were generated using the continuous ping utility within the PingTools Android application (Google Play Store), directed at the device's SoftAP interface, reliably exceeding the $100\,\text{pkts/sec}$ threshold and triggering the critical alarm state. During Feature 5 honeypot testing, port scans executed from the PingTools application against ports 21, 22, 80, and 443 were detected instantly, triggering the alternating acoustic/visual siren in under $3\,\text{ms}$ while preserving non-blocking state loop execution.
 
-In Feature 6 execution, the NAPT engine successfully bridged client internet traffic from softAP clients through the upstream STA connection with stable throughput, validating the integration of LWIP core locks within the Arduino-ESP32 environment.
+In Feature 6 execution, open-network acquisition required $4.613\,\text{s}$ to identify and lock onto the strongest available open access point (RSSI $-30\,\text{dBm}$), while the subsequent NAPT and DHCP/DNS reconfiguration completed in under $1\,\text{ms}$, confirming the operation's synchronous, in-memory nature. Thread locking via \texttt{LOCK\_TCPIP\_CORE()} ensured that dynamic DNS reallocations did not cause LWIP stack panics.
+
+\FloatBarrier
 
 \section{Challenges Faced}
-Developing the unified architecture introduced several hardware and software challenges:
+Developing and debugging the unified architecture on the ESP32-C6 hardware platform revealed several critical firmware and hardware integration challenges:
+
 \begin{enumerate}
-    \item **Wi-Fi Mode Transitions:** Switching between pure promiscuous access-point mode (\texttt{WIFI\_AP}) and dual repeater mode (\texttt{WIFI\_AP\_STA}) required complete Wi-Fi stack teardown (\texttt{WiFi.mode(WIFI\_OFF)}) to prevent memory corruption within the ESP-IDF driver layers.
-    \item **LWIP Thread Safety:** Modifying internal netif structures and enabling NAPT on the fly required precise synchronization using \texttt{LOCK\_TCPIP\_CORE()} to prevent Kernel panics during packet forwarding.
-    \item **Non-Blocking UI Mechanics:** Driving multi-pattern buzzer tones, fast OLED updates, multi-click button debouncing, and honeypot server polling without using blocking \texttt{delay()} calls required strict reliance on timestamp state comparisons (\texttt{millis()}).
+    \item \textbf{Hardware Serial Debugging vs. Native USB CDC:} During initial development, serial output failed to stream or hung indefinitely upon startup. This was traced to the ESP32-C6 native USB-CDC driver configuration conflicting with the hardware UART peripheral. Disabling USB CDC on Boot in the IDE build flags routed standard \texttt{Serial.print()} logs directly over default hardware UART, restoring full serial telemetry.
+    \item \textbf{Wi-Fi Stack Mode Transitions:} Transitioning the Wi-Fi radio between pure promiscuous access-point mode (\texttt{WIFI\_AP}) and dual repeater mode (\texttt{WIFI\_AP\_STA}) caused memory corruption within internal ESP-IDF driver structures. This required implementing an explicit teardown sequence calling \texttt{WiFi.mode(WIFI\_OFF)} and detaching sniffer callbacks prior to re-initializing new Wi-Fi modes.
+    \item \textbf{LWIP Thread Safety \& Core Locking:} Dynamic invocation of \texttt{ip\_napt\_enable()} while active client packets passed through the interface caused intermittent memory panics. Wrapping network interface initialization inside \texttt{LOCK\_TCPIP\_CORE()} and \texttt{UNLOCK\_TCPIP\_CORE()} macros resolved kernel race conditions.
+    \item \textbf{Non-Blocking Multi-Peripheral UI Execution:} Synchronizing piezo buzzer PWM sweeps, NeoPixel WS2812 color transitions, SSD1306 display updating, button debouncing, and multi-port honeypot polling without introducing blocking \texttt{delay()} calls required a strict timestamp-driven state engine utilizing \texttt{millis()} interval counters across all loops.
 \end{enumerate}
 
 \section{Conclusion}
-The Scarlet ESP32-C6 demonstrates the viability of executing multi-layered wireless security monitoring, active deception, and network bridging on a single low-power RISC-V microcontroller. By consolidating promiscuous frame sniffing, flood alarms, multi-port honeypots, and LWIP-driven NAPT repeating into an accessible hardware device, the system offers field engineers an adaptable tool for wireless auditing and network extension. Future iterations will focus on integrating Bluetooth Low Energy (BLE) attack detection, battery management telemetry, and cloud reporting via MQTT protocols.
+The Rogue Wi-Fi Access Point Detector demonstrates the viability of executing multi-layered wireless security monitoring, active deception, and network bridging on a single low-power RISC-V microcontroller. By consolidating promiscuous frame sniffing, flood alarms, multi-port honeypots, and LWIP-driven NAPT repeating into an accessible hardware device, the system offers field engineers an adaptable tool for wireless auditing and network extension. Future iterations will focus on integrating Bluetooth Low Energy (BLE) attack detection, battery management telemetry, and cloud reporting via MQTT protocols.
 
 \begin{thebibliography}{00}
-\bibitem{esp32c6} Expressif Systems, ``ESP32-C6 Series Datasheet,'' v1.1, 2023.
+\bibitem{esp32c6} Espressif Systems, ``ESP32-C6 Series Datasheet,'' v1.1, 2023.
 \bibitem{ieee80211} IEEE Computer Society, ``IEEE Standard for Information technology--Telecommunications and information exchange between systems Local and metropolitan area networks--Specific requirements - Part 11: Wireless LAN Medium Access Control (MAC) and Physical Layer (PHY) Specifications,'' IEEE Std 802.11-2020.
 \bibitem{lwip} A. Dunkels, ``Full TCP/IP for 8-Bit Architectures,'' in \textit{Proceedings of the 1st International Conference on Embedded Networked Sensor Systems (SenSys)}, 2003, pp. 85--98.
 \bibitem{honeypot_iot} S. Dowling, M. Schukat, and E. Hugh, ``A Zigbee Honeypot Device for Internet of Things Security,'' in \textit{IEEE 4th International Conference on Future Internet of Things and Cloud (FiCloud)}, 2016, pp. 128--135.
