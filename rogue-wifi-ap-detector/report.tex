@@ -43,12 +43,12 @@ The ESP32-C6 opens up new ground for this kind of tool. Its 32-bit RISC-V core c
 This paper presents the \textbf{Rogue Wi-Fi Access Point Detector} (SSID \texttt{Scarlet ESP32-C6}), a multi-functional wireless security sentry and bridge. A debounced multi-click physical interface and I2C display peripherals drive six execution modes: targeted ICMP/data packet sniffing, high-throughput traffic monitoring, station connection logging, frame flood alarm, active TCP honeypots on industrial ports, and an LwIP NAPT Wi-Fi range extender \cite{napt_ref}.
 
 % TODO: Project Block Diagram
-% \begin{figure}[htbp]
-%   \centering
-%   \includegraphics[width=\columnwidth]{block_diagram.png}
-%   \caption{Overall block diagram of the Rogue Wi-Fi Access Point Detector.}
-%   \label{fig:block_diagram}
-% \end{figure}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{block_diagram.png}
+  \caption{Overall block diagram of the Rogue Wi-Fi Access Point Detector.}
+  \label{fig:block_diagram}
+\end{figure}
 
 \section{Related Work}
 Wireless security monitoring at the embedded edge has evolved through specialized firmware. Early work used ESP8266 and ESP32 microcontrollers for frame injection or passive packet capture \cite{espressif_idf}. Portable security tools typically cover one domain: passive network sniffer, standalone rogue access point, or software repeater.
@@ -135,12 +135,12 @@ Each active component—the buzzer, the push button, and both indicator LEDs—c
 \end{table}
 
 % TODO: Circuit Diagram
-% \begin{figure}[htbp]
-%   \centering
-%   \includegraphics[width=\columnwidth]{circuit_diagram.png}
-%   \caption{Circuit diagram showing GPIO pin mapping and resistor placement.}
-%   \label{fig:circuit_diagram}
-% \end{figure}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{circuit_diagram.png}
+  \caption{Circuit diagram of the system.}
+  \label{fig:circuit_diagram}
+\end{figure}
 
 \subsection{Software Architecture \& Feature Execution}
 The firmware runs an asynchronous event loop over six distinct execution states, built on the Arduino framework for ESP32 \cite{arduino_esp32}.
