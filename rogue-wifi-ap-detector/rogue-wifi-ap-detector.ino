@@ -97,6 +97,8 @@ enum f6_substate f6_state = F6_SUB_MENU;
 int f6_menu_index = 0;
 char connected_ssid[33] = "None";
 unsigned long f6_connect_start_time = 0;
+unsigned long f6_scan_start_time = 0;
+unsigned long f6_napt_start_time = 0;
 
 /* State Machine */
 enum app_state {
@@ -547,6 +549,7 @@ void start_f6_connection(void)
 
 		WiFi.scanDelete();
 		WiFi.scanNetworks(true);
+		f6_scan_start_time = millis();
 	}
 
 	reset_button_state();
@@ -835,6 +838,9 @@ void feature_repeater(void)
 			WiFi.scanDelete();
 
 			if (open_found) {
+				Serial.printf("[DATA][F6] Open AP Scan Acquisition Time: %lu ms (SSID: %s, RSSI: %d dBm)\n",
+					      millis() - f6_scan_start_time, best_ssid, best_rssi);
+
 				Serial.print("[F6] Found Strongest Open WiFi: ");
 				Serial.print(best_ssid);
 				Serial.print(" (RSSI: ");
@@ -856,6 +862,7 @@ void feature_repeater(void)
 			} else {
 				/* Re-trigger infinite async scan if no open AP is currently visible */
 				WiFi.scanNetworks(true);
+				f6_scan_start_time = millis();
 			}
 		}
 
@@ -881,6 +888,7 @@ void feature_repeater(void)
 			f6_state = F6_SUB_ACTIVE;
 
 #if defined(CONFIG_LWIP_IPV4_NAPT) || defined(IP_NAPT)
+			f6_napt_start_time = millis();
 			/* 1. Enable NAPT safely with TCPIP core lock */
 			LOCK_TCPIP_CORE();
 			ip_napt_enable((uint32_t)WiFi.softAPIP(), 1);
@@ -906,6 +914,9 @@ void feature_repeater(void)
 				esp_netif_dhcps_option(ap_netif, ESP_NETIF_OP_SET, ESP_NETIF_DOMAIN_NAME_SERVER, &dns_offer, sizeof(dns_offer));
 				esp_netif_dhcps_start(ap_netif);
 			}
+
+			Serial.printf("[DATA][F6] NAPT Forwarding Init Time: %lu ms\n",
+				      millis() - f6_napt_start_time);
 #endif
 			digitalWrite(LED_ORANGE, LOW);
 			digitalWrite(LED_BLUE, HIGH);
