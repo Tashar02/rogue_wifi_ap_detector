@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{url}
+\usepackage{placeins}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -18,11 +19,41 @@
 \title{Rogue Wi-Fi Access Point Detector: An Integrated ESP32-C6 Wireless Security Sentry, Multi-Port Honeypot, and NAPT Repeater\\
 }
 
-\author{\IEEEauthorblockN{Tashfin Shakeer Rhythm}
-\IEEEauthorblockA{\textit{Department of Computer Science and Engineering} \\
+\author{
+\IEEEauthorblockN{Tashfin Shakeer Rhythm}
+\IEEEauthorblockA{2431079 \\
+\textit{Department of Computer Science and Engineering} \\
 \textit{Independent University, Bangladesh}\\
 Dhaka, Bangladesh \\
-tashfinshakeerrhythm@gmail.com}
+2431079@iub.edu.bd}
+\and
+\IEEEauthorblockN{Md. Yalid Iqbal}
+\IEEEauthorblockA{2420812 \\
+\textit{Department of Computer Science and Engineering} \\
+\textit{Independent University, Bangladesh}\\
+Dhaka, Bangladesh \\
+2420812@iub.edu.bd}
+\and
+\IEEEauthorblockN{Md. Boktier Ahmed Sojib}
+\IEEEauthorblockA{2420947 \\
+\textit{Department of Computer Science and Engineering} \\
+\textit{Independent University, Bangladesh}\\
+Dhaka, Bangladesh \\
+2420947@iub.edu.bd}
+\and
+\IEEEauthorblockN{Wazid Abdullah}
+\IEEEauthorblockA{2420290 \\
+\textit{Department of Computer Science and Engineering} \\
+\textit{Independent University, Bangladesh}\\
+Dhaka, Bangladesh \\
+2420290@iub.edu.bd}
+\and
+\IEEEauthorblockN{S M Amimul Ihsan}
+\IEEEauthorblockA{2420845 \\
+\textit{Department of Computer Science and Engineering} \\
+\textit{Independent University, Bangladesh}\\
+Dhaka, Bangladesh \\
+2420845@iub.edu.bd}
 }
 
 \maketitle
@@ -36,7 +67,7 @@ ESP32-C6, Rogue Access Point Detection, Wireless Intrusion Detection, Promiscuou
 \end{IEEEkeywords}
 
 \section{Introduction}
-Wireless local area networks (WLANs) built on IEEE 802.11 standards \cite{ieee80211} are the backbone of contemporary IoT deployments. Their open-medium transmission model exposes them to malicious probes, address spoofing, Denial-of-Service (DoS) floods, and unauthorized port reconnaissance. Enterprise networks deal with this through centralized Intrusion Detection Systems and dedicated honeypots running on high-performance servers. Edge nodes and small-scale field setups have no real equivalent --- no lightweight, battery-operable device that can monitor threats and extend network reach at the same time.
+Wireless local area networks (WLANs) built on IEEE 802.11 standards \cite{ieee80211} are the backbone of contemporary IoT deployments. Their open-medium transmission model exposes them to malicious probes, address spoofing, Denial-of-Service (DoS) floods, and unauthorized port reconnaissance. Enterprise networks deal with this through centralized Intrusion Detection Systems and dedicated honeypots running on high-performance servers. Edge nodes and small-scale field setups have no real equivalent: there is no lightweight, battery-operable device that can monitor threats and extend network reach at the same time.
 
 The ESP32-C6 opens up new ground for this kind of tool. Its 32-bit RISC-V core comes with integrated $2.4\,\text{GHz}$ Wi-Fi 6 (802.11ax) and Bluetooth 5 (LE) \cite{esp32c6}, and its raw packet capture API \cite{espressif_idf} sits alongside a full LwIP TCP/IP stack \cite{lwip}. A single chip can act as a network monitor, a decoy target, and an Internet bridge at the same time.
 
@@ -108,7 +139,7 @@ GPIO pin assignments are optimized for the ESP32-C6 pinout \cite{esp32c6}:
     \item \textbf{I2C Bus:} GPIO 6 (SDA) and GPIO 7 (SCL) at $400\,\text{kHz}$
 \end{itemize}
 
-Each active component—the buzzer, the push button, and both indicator LEDs—connects through a dedicated $1\,\text{k}\Omega$ current-limiting resistor.
+Each active component (the buzzer, the push button, and both indicator LEDs) connects through a dedicated $1\,\text{k}\Omega$ current-limiting resistor.
 
 \begin{table}[htbp]
   \centering
@@ -151,13 +182,13 @@ Sets the Wi-Fi stack into promiscuous mode via \texttt{esp\_wifi\_set\_promiscuo
 \subsubsection{Feature 2: AP Data Monitor}
 Tracks cumulative packet counts ($\text{Total Rx}$) and interval throughput at $200\,\text{ms}$ resolution. RGB brightness scales with packet activity to give a real-time visual indication of payload transfers.
 
-\subsubsection{Feature 3: Client Access Logger}
+\subsubsection{Feature 3: Client Logger}
 Binds to \texttt{ARDUINO\_EVENT\_WIFI\_AP\_STACONNECTED} events \cite{arduino_esp32}. On station association, the client MAC address is parsed, formatted into standard hexadecimal notation, written to the display buffer, and flagged with a $2400\,\text{Hz}$ tone.
 
-\subsubsection{Feature 4: Flood Attack Monitor}
+\subsubsection{Feature 4: Flood Monitor}
 Counts data frame arrivals over 1-second windows. Frame rates above $\text{FLOOD\_THRESHOLD} = 100\,\text{pkts/sec}$ trigger a high-priority alarm: a $2500\,\text{Hz}$ siren, critical-red RGB, and a warning on the OLED interface.
 
-\subsubsection{Feature 5: Port Scan Honeypot Sentry}
+\subsubsection{Feature 5: Port Scan}
 Opens four simultaneous \texttt{WiFiServer} \cite{arduino_esp32} listeners on FTP (21), SSH (22), HTTP (80), and HTTPS (443). Each inbound connection is accepted, flushed, and closed immediately to prevent resource exhaustion \cite{honeypot_iot}. A hit triggers a non-blocking 3-second alternating siren ($1800\,\text{Hz}$--$2800\,\text{Hz}$) with red-purple RGB strobing.
 
 \begin{table*}[!t]
@@ -204,24 +235,24 @@ The prototype ran under controlled RF test scenarios. Serial telemetry logs capt
 \toprule
 \textbf{Feature Mode} & \textbf{Metric / Parameter} & \textbf{Value} \\
 \midrule
-Ping Monitor (F1) & Target Frame Processing Latency & $11.8\,\text{ms}$ \\
-Ping Monitor (F1) & Trigger Warning Threshold & $> 10\,\text{pkts/sec}$ \\
-Data Monitor (F2) & Serial telemetry refresh interval & $200\,\text{ms}$ \\
+AP Ping Monitor (F1) & Target Frame Processing Latency & $11.8\,\text{ms}$ \\
+AP Ping Monitor (F1) & Trigger Warning Threshold & $> 10\,\text{pkts/sec}$ \\
+AP Data Monitor (F2) & Serial telemetry refresh interval & $200\,\text{ms}$ \\
 Client Logger (F3) & Station MAC Parsing Latency & $14.2\,\text{ms}$ \\
-Flood Sentry (F4) & Attack Alarm Trigger Threshold & $> 100\,\text{pkts/sec}$ \\
-Flood Sentry (F4) & Alert Audio Activation Delay & $< 4.5\,\text{ms}$ \\
-Port Honeypot (F5) & Connection Flush \& Termination & $2.1\,\text{ms}$ \\
-Port Honeypot (F5) & Multi-Port Polling Loop Overhead & $0.35\,\text{ms}$ \\
-Repeater STA (F6) & Open AP Scan Target Acquisition & $4.613\,\text{s}$ \\
-Repeater NAPT (F6) & Layer-3 Forwarding Init Time & $< 1\,\text{ms}$ \\
-Repeater NAPT (F6) & Connection Timeout Fallback & $15.0\,\text{s}$ (configured) \\
+Flood Monitor (F4) & Attack Alarm Trigger Threshold & $> 100\,\text{pkts/sec}$ \\
+Flood Monitor (F4) & Alert Audio Activation Delay & $< 4.5\,\text{ms}$ \\
+Port Scan (F5) & Connection Flush \& Termination & $2.1\,\text{ms}$ \\
+Port Scan (F5) & Multi-Port Polling Loop Overhead & $0.35\,\text{ms}$ \\
+WiFi Repeater (F6) & Open AP Scan Target Acquisition & $4.613\,\text{s}$ \\
+WiFi Repeater (F6) & Layer-3 Forwarding Init Time & $< 1\,\text{ms}$ \\
+WiFi Repeater (F6) & Connection Timeout Fallback & $15.0\,\text{s}$ (configured) \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Promiscuous frame filtering parsed IEEE 802.11 \cite{ieee80211} data packet headers without triggering buffer overflows or execution stalls. Flood conditions for Feature 4 were generated using the PingTools application \cite{pingtools} on Android, directed at the device's SoftAP interface; packet rates consistently exceeded $100\,\text{pkts/sec}$ and triggered the critical alarm state. Feature 5 honeypot testing used PingTools port scans \cite{pingtools} against ports 21, 22, 80, and 443: all connections were detected and the alternating siren fired in under $3\,\text{ms}$, with no impact on the non-blocking state loop.
+Promiscuous frame filtering parsed IEEE 802.11 \cite{ieee80211} data packet headers without triggering buffer overflows or execution stalls. Flood conditions for the Flood Monitor (F4) were generated using the PingTools application \cite{pingtools} on Android, directed at the device's SoftAP interface; packet rates consistently exceeded $100\,\text{pkts/sec}$ and triggered the critical alarm state. Port Scan (F5) testing used PingTools port scans \cite{pingtools} against ports 21, 22, 80, and 443: all connections were detected and the alternating siren fired in under $3\,\text{ms}$, with no impact on the non-blocking state loop.
 
-Feature 6 open-network acquisition took $4.613\,\text{s}$ to lock onto the strongest open access point (RSSI $-30\,\text{dBm}$). The subsequent NAPT and DHCP/DNS reconfiguration completed in under $1\,\text{ms}$, confirming the operation runs synchronously in memory. \texttt{LOCK\_TCPIP\_CORE()} prevented LwIP stack panics during dynamic DNS reallocation \cite{lwip}.
+WiFi Repeater (F6) open-network acquisition took $4.613\,\text{s}$ to lock onto the strongest open access point (RSSI $-30\,\text{dBm}$). The subsequent NAPT and DHCP/DNS reconfiguration completed in under $1\,\text{ms}$, confirming the operation runs synchronously in memory. \texttt{LOCK\_TCPIP\_CORE()} prevented LwIP stack panics during dynamic DNS reallocation \cite{lwip}.
 
 \section{Challenges Faced}
 Developing and debugging the unified firmware on ESP32-C6 hardware exposed four critical integration challenges:
@@ -236,6 +267,7 @@ Developing and debugging the unified firmware on ESP32-C6 hardware exposed four 
 \section{Conclusion}
 The Rogue Wi-Fi Access Point Detector runs multi-layered wireless security monitoring, active deception, and network bridging on a single low-power RISC-V microcontroller at under \$13 in hardware cost. Promiscuous frame sniffing, flood alarms, multi-port honeypots, and LwIP NAPT repeating operate concurrently within a single non-blocking state machine, giving field engineers a self-contained tool for wireless auditing and network extension. Future work will add Bluetooth Low Energy (BLE) attack detection, battery management telemetry, and cloud reporting over MQTT.
 
+\FloatBarrier
 \begin{thebibliography}{00}
 \bibitem{esp32c6}
 Espressif Systems, ``ESP32-C6 Series Datasheet,'' Rev.~1.1, Espressif Systems, Shanghai, 2023. [Online]. Available: \url{https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf}
