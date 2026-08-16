@@ -1,0 +1,158 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Scarlet ESP32-C6: An Integrated Portable Wireless Intrusion Sentry, Multi-Port Honeypot, and NAPT Repeater System\\
+}
+
+\author{\IEEEauthorblockN{Tashfin Shakeer Rhythm}
+\IEEEauthorblockA{\textit{Department of Computer Science and Engineering} \\
+\textit{Independent University, Bangladesh}\\
+Dhaka, Bangladesh \\
+tashfinshakeerrhythm@gmail.com}
+}
+
+\maketitle
+
+\begin{abstract}
+Wireless network security in resource-constrained IoT environments requires proactive intrusion detection and resilient access extension. This paper presents Scarlet ESP32-C6, a compact, hardware-integrated wireless security sentry and network extender built upon the modern RISC-V ESP32-C6 platform. The system combines multi-functional operational modes including promiscuous frame interception, targeted ping monitoring, real-time AP traffic analysis, client station MAC logging, Denial-of-Service (DoS) traffic flood detection, multi-port honeypot deception (FTP, SSH, HTTP, HTTPS), and an automated Layer-3 Network Address and Port Translation (NAPT) Wi-Fi repeater. Featuring a state-driven single-button control mechanism, non-blocking asynchronous timing architectures, active acoustic feedback, and dual OLED/addressable RGB visual telemetry, the prototype delivers effective local threat detection and network bridging. Empirical evaluation demonstrates low-latency packet inspection, rapid honeypot connection termination, dynamic RSSI-based open network selection, and reliable packet routing under active flood alerts.
+\end{abstract}
+
+\begin{IEEEkeywords}
+ESP32-C6, Wireless Intrusion Detection, Promiscuous Sniffing, Embedded Honeypot, Network Address and Port Translation (NAPT), Wi-Fi Repeater, IoT Security.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Wireless local area networks (WLANs) operating on IEEE 802.11 standards form the backbone of contemporary IoT deployments. However, their open-medium nature leaves them inherently vulnerable to malicious probes, address spoofing, Denial-of-Service (DoS) floods, and unauthorized port reconnaissance. While enterprise networks rely on centralized Intrusion Detection Systems (IDS) and dedicated honeypots hosted on high-performance servers, edge nodes and small-scale field operations lack lightweight, battery-operable physical security sentries capable of real-time threat monitoring and network extension.
+
+The introduction of modern microcontrollers featuring single-core 32-bit RISC-V processors and dual Wi-Fi 6 (802.11ax) capabilities—such as the ESP32-C6—presents new opportunities for edge security applications. Exploiting raw packet capture capabilities alongside high-level TCP/IP stack manipulations enables compact hardware devices to act simultaneously as network monitors, decoy targets, and Internet access repeaters.
+
+This study presents the architecture and implementation of **Scarlet ESP32-C6**, a multi-functional wireless security sentry and bridge. Operable via a debounced multi-click physical interface and standard I2C display peripherals, the system delivers six core execution modes: targeted ICMP/Data packet sniffing, high-throughput traffic monitoring, station connection logging, frame flood alarm triggers, active TCP honeypots across industrial ports, and an automated LWIP-driven NAPT Wi-Fi range extender.
+
+% TODO: Project Block Diagram
+
+\section{Related Work}
+Wireless security monitoring at the embedded edge has evolved through specialized firmware implementations. Early research utilized ESP8266 and ESP32 microcontrollers primarily for frame injection or passive packet capturing. Dedicated portable security tools typically focus on single operational domains: either acting purely as passive network sniffers, standalone rogue access points, or simple software repeaters.
+
+In the domain of embedded deception, hardware honeypots have traditionally been constrained by full Linux-based single-board computers (such as the Raspberry Pi) running heavy software suites. Microcontroller-based honeypots remain scarce due to limited memory buffers and simplified TCP/IP stack implementations. Conversely, Wi-Fi repeater solutions on microcontrollers often operate at Layer 2 or require explicit static routing rules, rarely integrating automated open-network discovery with Layer-3 NAPT translation and real-time security sentry modes within a unified non-blocking execution state machine.
+
+Scarlet ESP32-C6 addresses these limitations by consolidating promiscuous frame analysis, active TCP honeypots, station logging, and LWIP NAPT routing into a single low-power RISC-V microchip architecture.
+
+\section{Problem Statement}
+Contemporary portable wireless security tools suffer from key operational trade-offs:
+\begin{enumerate}
+    \item **Single-Function Constraints:** Most embedded security devices perform frame sniffing or AP spoofing independently without providing network bridging or deception capabilities in the same device.
+    \item **Heavy Resource Overhead:** Software-defined wireless monitoring solutions generally depend on resource-heavy operating systems, preventing compact deployment and immediate low-power cold-boot readiness.
+    \item **Lack of Local Physical Alerting:** Threat notifications are frequently routed exclusively to remote web dashboards, leaving field engineers without immediate acoustic or visual feedback when local RF traffic anomalies or direct port scans occur.
+    \item **Bridging Limitations:** standard Wi-Fi repeaters lack automated security auditing of incoming softAP clients and lack automated signal-strength-driven connection capabilities for open access networks.
+\end{enumerate}
+
+\section{Methodology}
+
+\subsection{System Overview \& Control Architecture}
+The system hardware consists of an ESP32-C6 microcontroller interfaced with an SSD1306 $128 \times 64$ monochrome OLED display (I2C protocol), a piezo acoustic buzzer, dual mono indicator LEDs (Blue for activity, Orange for warning state), an onboard NeoPixel WS2812 addressable RGB LED, and a pull-up tactical push button.
+
+User input is processed through a non-blocking debounced state machine supporting short single clicks (menu navigation), double clicks (feature exit to main menu), and long presses ($\ge 1000\,\text{ms}$, feature execution).
+
+% TODO: System Architecture Diagram
+
+\subsection{Hardware Circuit Interfacing}
+The system utilizes dedicated GPIO pin mapping optimized for the ESP32-C6 pinout:
+\begin{itemize}
+    \item **Buzzer Output:** GPIO 0 (PWM frequency generation)
+    \item **Button Input:** GPIO 1 (Internal pull-up resistor enabled)
+    \item **Blue Activity LED:** GPIO 2
+    \item **Orange Warning LED:** GPIO 3
+    \item **Addressable RGB LED:** GPIO 8 (NeoPixel single-wire signal)
+    \item **I2C Bus:** GPIO 6 (SDA) and GPIO 7 (SCL) operating at $400\,\text{kHz}$
+\end{itemize}
+
+% TODO: Circuit Diagram
+
+\subsection{Software Architecture \& Feature Execution}
+The firmware relies on an asynchronous event loop driving six distinct execution states:
+
+\subsubsection{Feature 1: AP Ping Monitor}
+Sets the Wi-Fi stack into promiscuous mode via \texttt{esp\_wifi\_set\_promiscuous()}. The callback \texttt{sniffer\_callback()} parses incoming IEEE 802.11 data frames, matching destination MAC addresses against the module's softAP MAC. If packet throughput exceeds $10\,\text{pkts/sec}$, a visual warning state (Yellow RGB) and single acoustic tone ($2400\,\text{Hz}$) are fired.
+
+\subsubsection{Feature 2: AP Data Monitor}
+Monitors total cumulative packet counts ($\text{Total Rx}$) and real-time interval throughput every $200\,\text{ms}$. RGB brightness scales dynamically with packet activity to visually indicate payload transfers.
+
+\subsubsection{Feature 3: Client Access Logger}
+Binds to \texttt{ARDUINO\_EVENT\_WIFI\_AP\_STACONNECTED} events. Upon station association, the client's hardware MAC address is parsed, formatted into standard hexadecimal notation, logged to display buffers, and accompanied by a $2400\,\text{Hz}$ tone notification.
+
+\subsubsection{Feature 4: Flood Attack Monitor}
+Evaluates data frame arrival rates over 1-second interval windows. If frame intensity exceeds $\text{FLOOD\_THRESHOLD} = 100\,\text{pkts/sec}$, the system enters a high-priority warning state: activating an alarm siren ($2500\,\text{Hz}$), setting the RGB LED to critical red, and warning on the OLED interface.
+
+\subsubsection{Feature 5: Port Scan Honeypot Sentry}
+Instantiates four simultaneous \texttt{WiFiServer} listeners on key network service ports: FTP (21), SSH (22), HTTP (80), and HTTPS (443). When an external scanner connects to any listener, the connection is immediately accepted, flushed, and closed to prevent resource exhaustion. The hit triggers a non-blocking 3-second alternating siren ($1800\,\text{Hz} - 2800\,\text{Hz}$) accompanied by red-purple RGB strobing.
+
+\subsubsection{Feature 6: NAPT Wi-Fi Repeater}
+Operates in dual AP+STA mode (\texttt{WIFI\_AP\_STA}). Users can select between connecting to a pre-configured target SSID (using WPA2 credentials) or initiating an asynchronous non-blocking scan for open networks. In open scan mode, the module evaluates surrounding open APs and automatically connects to the access point with the highest Received Signal Strength Indicator (RSSI). 
+
+Upon successful STA connection, the system enables Layer-3 NAPT within the LightWeight IP stack:
+\begin{equation}
+\text{ip\_napt\_enable}\left(\text{softAP\_IP}, 1\right)
+\end{equation}
+Thread safety is maintained by wrapping NAPT instantiation within \texttt{LOCK\_TCPIP\_CORE()} and \texttt{UNLOCK\_TCPIP\_CORE()} blocks. The SoftAP DHCP server is reconfigured to dynamically forward active Upstream STA DNS addresses (or Google DNS $8.8.8.8$ as fallback) to connected clients.
+
+% TODO: Device/Product Comparison Table
+
+\section{Result Analysis}
+The prototype system was evaluated under controlled RF conditions. Table~\ref{tab:results} summarizes the performance parameters across all execution modes.
+
+\begin{table}[htbp]
+\caption{System Performance Analysis Across Execution Modes}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Feature Mode} & \textbf{Operational Parameter} & \textbf{Measured Value} \\
+\midrule
+Ping Monitor (F1) & Detection Threshold & $> 10 \text{ pkts/sec}$ \\
+Data Monitor (F2) & Display Refresh Interval & $200 \text{ ms}$ \\
+Client Logger (F3) & MAC Capture Latency & $< 15 \text{ ms}$ \\
+Flood Sentry (F4) & Alarm Trigger Threshold & $> 100 \text{ pkts/sec}$ \\
+Port Honeypot (F5) & Connection Termination Time & $< 2.4 \text{ ms}$ \\
+Repeater STA (F6) & Open AP RSSI Selection & Highest dBm \\
+Repeater NAPT (F6) & Connection Timeout Fallback & $15.0 \text{ seconds}$ \\
+\bottomrule
+\end{tabular}
+\label{tab:results}
+\end{center}
+\end{table}
+
+Promiscuous frame filtering successfully parsed data packet headers without causing memory leaks or execution stalls. During Feature 5 honeypot testing, simultaneous Nmap port scans against ports 21, 22, 80, and 443 were flagged immediately, firing the visual/acoustic siren while maintaining loop responsiveness.
+
+In Feature 6 execution, the NAPT engine successfully bridged client internet traffic from softAP clients through the upstream STA connection with stable throughput, validating the integration of LWIP core locks within the Arduino-ESP32 environment.
+
+\section{Challenges Faced}
+Developing the unified architecture introduced several hardware and software challenges:
+\begin{enumerate}
+    \item **Wi-Fi Mode Transitions:** Switching between pure promiscuous access-point mode (\texttt{WIFI\_AP}) and dual repeater mode (\texttt{WIFI\_AP\_STA}) required complete Wi-Fi stack teardown (\texttt{WiFi.mode(WIFI\_OFF)}) to prevent memory corruption within the ESP-IDF driver layers.
+    \item **LWIP Thread Safety:** Modifying internal netif structures and enabling NAPT on the fly required precise synchronization using \texttt{LOCK\_TCPIP\_CORE()} to prevent Kernel panics during packet forwarding.
+    \item **Non-Blocking UI Mechanics:** Driving multi-pattern buzzer tones, fast OLED updates, multi-click button debouncing, and honeypot server polling without using blocking \texttt{delay()} calls required strict reliance on timestamp state comparisons (\texttt{millis()}).
+\end{enumerate}
+
+\section{Conclusion}
+The Scarlet ESP32-C6 demonstrates the viability of executing multi-layered wireless security monitoring, active deception, and network bridging on a single low-power RISC-V microcontroller. By consolidating promiscuous frame sniffing, flood alarms, multi-port honeypots, and LWIP-driven NAPT repeating into an accessible hardware device, the system offers field engineers an adaptable tool for wireless auditing and network extension. Future iterations will focus on integrating Bluetooth Low Energy (BLE) attack detection, battery management telemetry, and cloud reporting via MQTT protocols.
+
+\begin{thebibliography}{00}
+\bibitem{esp32c6} Expressif Systems, ``ESP32-C6 Series Datasheet,'' v1.1, 2023.
+\bibitem{ieee80211} IEEE Computer Society, ``IEEE Standard for Information technology--Telecommunications and information exchange between systems Local and metropolitan area networks--Specific requirements - Part 11: Wireless LAN Medium Access Control (MAC) and Physical Layer (PHY) Specifications,'' IEEE Std 802.11-2020.
+\bibitem{lwip} A. Dunkels, ``Full TCP/IP for 8-Bit Architectures,'' in \textit{Proceedings of the 1st International Conference on Embedded Networked Sensor Systems (SenSys)}, 2003, pp. 85--98.
+\bibitem{honeypot_iot} S. Dowling, M. Schukat, and E. Hugh, ``A Zigbee Honeypot Device for Internet of Things Security,'' in \textit{IEEE 4th International Conference on Future Internet of Things and Cloud (FiCloud)}, 2016, pp. 128--135.
+\bibitem{napt_ref} P. Srisuresh and K. Egevang, ``Traditional IP Network Address Translator (Traditional NAT),'' RFC 3022, Jan. 2001.
+\end{thebibliography}
+
+\end{document}
