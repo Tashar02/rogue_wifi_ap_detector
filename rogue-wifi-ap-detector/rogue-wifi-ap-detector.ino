@@ -641,7 +641,7 @@ void feature_client_logger(void)
 	last_feature_update = now;
 
 	display_begin_frame();
-	display.println("F4: Client log");
+	display.println("F3: Client log");
 	display.println("---------------------");
 
 	display.print("AP: ");
