@@ -100,7 +100,7 @@ Portable wireless security tools carry four recurring operational deficits:
 \section{Methodology}
 
 \subsection{System Overview \& Control Architecture}
-The hardware consists of an ESP32-C6 microcontroller \cite{esp32c6} interfaced with an SSD1306 $128 \times 64$ monochrome OLED display \cite{ssd1306} over I2C, a piezo acoustic buzzer, dual indicator LEDs (Blue for activity, Orange for warning), an onboard WS2812 addressable RGB LED \cite{neopixel}, and a pull-up tactical push button.
+The hardware consists of an ESP32-C6 microcontroller \cite{esp32c6} interfaced with an SSD1306 $128 \times 64$ OLED display \cite{ssd1306} over I2C, a passive buzzer, dual indicator LEDs (Blue for activity, Orange for warning), an onboard WS2812 addressable RGB LED \cite{neopixel}, and a push button.
 
 The firmware processes button input through a non-blocking debounced state machine supporting three gestures: short single clicks for menu navigation, double clicks to exit a feature and return to the main menu, and long presses ($\ge 1000\,\text{ms}$) to launch the selected feature. Table~\ref{tab:control_ui} details the timing thresholds.
 
@@ -139,7 +139,7 @@ GPIO pin assignments are optimized for the ESP32-C6 pinout \cite{esp32c6}:
     \item \textbf{I2C Bus:} GPIO 6 (SDA) and GPIO 7 (SCL) at $400\,\text{kHz}$
 \end{itemize}
 
-Each active component (the buzzer, the push button, and both indicator LEDs) connects through a dedicated $1\,\text{k}\Omega$ current-limiting resistor.
+Each active component (the buzzer, the push button, and both indicator LEDs) connects through a dedicated $1\,\text{k}\Omega$ resistor since they are quite fragile components and there's always a chance to get more voltage into them and burn them accidentally.
 
 \begin{table}[htbp]
   \centering
@@ -261,7 +261,7 @@ Developing and debugging the unified firmware on ESP32-C6 hardware exposed four 
     \item \textbf{Hardware Serial Debugging vs. Native USB CDC:} Serial output failed to stream or hung on startup. The ESP32-C6 native USB-CDC driver conflicted with the hardware UART peripheral \cite{espressif_idf}. Disabling USB CDC on Boot in the Arduino IDE build flags re-routed \texttt{Serial.print()} over the hardware UART, restoring serial telemetry.
     \item \textbf{Wi-Fi Stack Mode Transitions:} Switching the radio between promiscuous AP mode (\texttt{WIFI\_AP}) and dual repeater mode (\texttt{WIFI\_AP\_STA}) corrupted internal ESP-IDF driver structures \cite{espressif_idf}. An explicit teardown sequence calling \texttt{WiFi.mode(WIFI\_OFF)} and detaching sniffer callbacks before re-initializing Wi-Fi resolved the corruption.
     \item \textbf{LwIP Thread Safety \& Core Locking:} Calling \texttt{ip\_napt\_enable()} while active client packets traversed the interface caused memory panics \cite{lwip}. Wrapping network interface initialization inside \texttt{LOCK\_TCPIP\_CORE()} and \texttt{UNLOCK\_TCPIP\_CORE()} eliminated the race condition.
-    \item \textbf{Non-Blocking Multi-Peripheral UI Execution:} Piezo buzzer PWM sweeps, WS2812 color transitions \cite{neopixel}, SSD1306 display updates \cite{ssd1306}, button debouncing, and multi-port honeypot polling all had to run without blocking \texttt{delay()} calls. A \texttt{millis()}-based timestamp engine with per-feature interval counters handled the coordination.
+    \item \textbf{Non-Blocking Multi-Peripheral UI Execution:} Passive buzzer PWM sweeps, WS2812 color transitions \cite{neopixel}, SSD1306 display updates \cite{ssd1306}, button debouncing, and multi-port honeypot polling all had to run without blocking \texttt{delay()} calls. A \texttt{millis()}-based timestamp engine with per-feature interval counters handled the coordination.
 \end{enumerate}
 
 \section{Conclusion}
