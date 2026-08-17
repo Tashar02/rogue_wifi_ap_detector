@@ -8,7 +8,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{url}
+\usepackage{xurl}
 \usepackage{placeins}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
@@ -16,8 +16,7 @@
 
 \begin{document}
 
-\title{Rogue Wi-Fi Access Point Detector\\
-}
+\title{Rogue Wi-Fi Access Point Detector}
 
 \author{
 \IEEEauthorblockN{Tashfin Shakeer Rhythm}
@@ -254,7 +253,7 @@ Promiscuous frame filtering parsed IEEE 802.11 \cite{ieee80211} data packet head
 WiFi Repeater (F6) open-network acquisition took $4.613\,\text{s}$ to lock onto the strongest open access point (RSSI $-30\,\text{dBm}$). The subsequent NAPT and DHCP/DNS reconfiguration completed in under $1\,\text{ms}$, confirming the operation runs synchronously in memory. \texttt{LOCK\_TCPIP\_CORE()} prevented LwIP stack panics during dynamic DNS reallocation \cite{lwip}.
 
 \section{Challenges Faced}
-Developing and debugging the unified firmware on ESP32-C6 hardware exposed four critical integration challenges:
+Developing and debugging the unified firmware on ESP32-C6 hardware exposed five critical integration challenges:
 
 \begin{enumerate}
     \item \textbf{Hardware Serial Debugging vs. Native USB CDC:} Serial output failed to stream or hung on startup. The ESP32-C6 native USB-CDC driver conflicted with the hardware UART peripheral \cite{espressif_idf}. Disabling USB CDC on Boot in the Arduino IDE build flags re-routed \texttt{Serial.print()} over the hardware UART, restoring serial telemetry.
