@@ -172,6 +172,13 @@ Each active component (the buzzer, the push button, and both indicator LEDs) con
   \label{fig:circuit_diagram}
 \end{figure}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{practical_circuit_diagram.jpg}
+  \caption{Practical circuit diagram of the hardware setup.}
+  \label{fig:practical_circuit_diagram}
+\end{figure}
+
 \subsection{Software Architecture \& Feature Execution}
 The firmware runs an asynchronous event loop over six distinct execution states, built on the Arduino framework for ESP32 \cite{arduino_esp32}.
 
@@ -224,6 +231,13 @@ NAPT instantiation runs inside \texttt{LOCK\_TCPIP\_CORE()} and \texttt{UNLOCK\_
 
 \section{Result Analysis}
 The prototype ran under controlled RF test scenarios. Serial telemetry logs captured during testing quantify execution parameters and latencies across all operating modes, as shown in Table~\ref{tab:results}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{working_prototype.jpg}
+  \caption{Working prototype of the Rogue Wi-Fi AP Detector.}
+  \label{fig:working_prototype}
+\end{figure}
 
 \begin{table}[htbp]
 \caption{Empirical System Performance Analysis via Serial Monitor Capture}
